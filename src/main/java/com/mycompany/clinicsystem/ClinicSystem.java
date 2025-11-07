@@ -4,6 +4,7 @@
 
 package com.mycompany.clinicsystem;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -11,6 +12,7 @@ import java.util.*;
  *
  * @author Javengers                              == validate before switch 
  */
+
 public class ClinicSystem {
     
     private static final Scanner in = new Scanner(System.in);
@@ -18,6 +20,9 @@ public class ClinicSystem {
     private static  Patient cur_Patient = null;
     private static List<Practitioner> Practitioners;
     private static List<Patient> patients;
+    private static List<Clinic> clinics;
+    private static List<Appointment> appointments;
+    
     
     public static void main(String[] args) {
         Practitioners = new ArrayList<>();
@@ -279,73 +284,161 @@ public class ClinicSystem {
         schedule.setWeeklyRules(rules);
         clinic.setSchedule(schedule);
         cur_Practitioner.setClinic(clinic);
-
+        clinics.add(clinic);
         System.out.println("\nClinic added successfully ✅");
     }
         //================================
-     private static void viewClinic() {
-    System.out.println("\n-- View Clinic --");
+    private static void viewClinic() {
+        System.out.println("\n-- View Clinic --");
 
-    if (cur_Practitioner.getClinic() == null) {
-        System.out.println("You don't have a clinic yet.");
-        return;
-    }
+        if (cur_Practitioner.getClinic() == null) {
+            System.out.println("You don't have a clinic yet.");
+            return;
+        }
 
-    Clinic clinic = cur_Practitioner.getClinic();
-    
-    System.out.println("Name: " + clinic.getName());
-    System.out.println("Address: " + clinic.getAddress());
-    System.out.println("Price: " + clinic.getPrice());
+        Clinic clinic = cur_Practitioner.getClinic();
 
-    // التخصص حسب الرقم
-    String specialty = switch (clinic.getDepartmentID()) {
-        case 1 -> "Cardiology";
-        case 2 -> "Dermatology";
-        case 3 -> "Pediatrics";
-        case 4 -> "General";
-        default -> "Unknown";
-    };
-    System.out.println("Specialty: " + specialty);
+        System.out.println("Name: " + clinic.getName());
+        System.out.println("Address: " + clinic.getAddress());
+        System.out.println("Price: " + clinic.getPrice());
 
-    // عرض جدول العمل (schedule)
-    Schedule schedule = clinic.getSchedule();
-    if (schedule == null) {
-        System.out.println("\nNo schedule set for this clinic.");
-    } else {
-        System.out.println("\nSlot duration: " + schedule.getSlotDurationInMinutes() + " minutes");
-        System.out.println("Working Days & Hours:");
-        if (schedule.getWeeklyRules() == null || schedule.getWeeklyRules().isEmpty()) {
-            System.out.println("No working hours defined.");
+        String specialty = switch (clinic.getDepartmentID()) {
+            case 1 -> "Cardiology";
+            case 2 -> "Dermatology";
+            case 3 -> "Pediatrics";
+            case 4 -> "General";
+            default -> "Unknown";
+        };
+        System.out.println("Specialty: " + specialty);
+
+        Schedule schedule = clinic.getSchedule();
+        if (schedule == null) {
+            System.out.println("\nNo schedule set for this clinic.");
         } else {
-            for (WorkingHoursRule rule : schedule.getWeeklyRules()) {
-                System.out.println("- " + rule.getDay() + ": " 
-                    + rule.getStartTime() + " → " + rule.getEndTime());
+            System.out.println("\nSlot duration: " + schedule.getSlotDurationInMinutes() + " minutes");
+            System.out.println("Working Days & Hours:");
+            if (schedule.getWeeklyRules() == null || schedule.getWeeklyRules().isEmpty()) {
+                System.out.println("No working hours defined.");
+            } else {
+                for (WorkingHoursRule rule : schedule.getWeeklyRules()) {
+                    System.out.println("- " + rule.getDay() + ": " 
+                        + rule.getStartTime() + " → " + rule.getEndtTime());
+                }
             }
         }
     }
+    
+    private static void searchClinics() {
 
-    // لو عايزة كمان نعرض الـ appointments أو ratings (اختياري)
-    if (clinic.getAppointments() != null && !clinic.getAppointments().isEmpty()) {
-        System.out.println("\nAppointments:");
-        for (Appointment ap : clinic.getAppointments()) {
-            System.out.println("- " + ap.getPatient().getName() + 
-                               " at " + ap.getAppointmentDateTime());
+        System.out.println("\n-- Search Clinics by Specialty --");
+        System.out.println("1. Cardiology");
+        System.out.println("2. Dermatology");
+        System.out.println("3. Pediatrics");
+        System.out.println("4. General");
+        System.out.print("> ");
+        int choice = in.nextInt();
+        in.nextLine();
+
+        List<Clinic> found = new ArrayList<>();
+
+        for (Clinic c : clinics) {
+            if (c != null && c.getDepartmentID() == choice)
+                found.add(c);
         }
-    }
 
-    if (clinic.getRatings() != null && !clinic.getRatings().isEmpty()) {
-        System.out.println("\nRatings:");
-        for (Rating r : clinic.getRatings()) {
-            System.out.println("- " + r.getPatient().getName() + ": " + r.getValue() + "/5");
+        if (found.isEmpty()) {
+            System.out.println("❌ No clinics found for that specialty.");
+            return;
         }
+
+        System.out.println("\nAvailable Clinics:");
+        for (int i = 0; i < found.size(); i++) {
+            Clinic c = found.get(i);
+            System.out.println((i + 1) + ". " + c.getName() + " | " + c.getAddress() + " | Price: " + c.getPrice());
+        }
+
+        System.out.print("Enter clinic number to book (0 to cancel): ");
+        int index = in.nextInt();
+        in.nextLine();
+        if (index <= 0 || index > found.size()) return;
+
+        Clinic selected = found.get(index - 1);
+
+        if (selected.getSchedule() == null || selected.getSchedule().getWeeklyRules() == null) {
+            System.out.println("❌ Clinic has no working schedule.");
+            return;
+        }
+
+        System.out.println("\nAvailable Days:");
+        for (WorkingHoursRule rule : selected.getSchedule().getWeeklyRules()) {
+            System.out.println("- " + rule.getDay() + " (" + rule.getStartTime() + " → " + rule.getEndtTime() + ")");
+        }
+
+        System.out.print("\nEnter booking day (e.g. MONDAY): ");
+        String dayInput = in.nextLine().trim().toUpperCase();
+
+        DayOfWeek chosenDay;
+        try {
+            chosenDay = DayOfWeek.valueOf(dayInput);
+        } catch (Exception e) {
+            System.out.println("❌ Invalid day name.");
+            return;
+        }
+
+        WorkingHoursRule chosenRule = null;
+        for (WorkingHoursRule rule : selected.getSchedule().getWeeklyRules()) {
+            if (rule.getDay() == chosenDay)
+                chosenRule = rule;
+        }
+
+        if (chosenRule == null) {
+            System.out.println("❌ This clinic doesn’t work on that day.");
+            return;
+        }
+
+        System.out.print("Enter appointment time (HH:MM): ");
+        String timeInput = in.nextLine().trim();
+
+        // نعمل كائن TimeSlot لتخزين الموعد
+        TimeSlot slot = new TimeSlot(chosenDay, timeInput);
+
+        // التأكد إن الوقت داخل نطاق العمل
+        LocalTime selectedTime = LocalTime.parse(timeInput);
+        if (selectedTime.isBefore(chosenRule.getStartTime()) || selectedTime.isAfter(chosenRule.getEndtTime())) {
+            System.out.println("❌ Time outside working hours.");
+            return;
+        }
+
+        // تأكد إن الـ slot مش محجوز قبل كده
+        for (Appointment a : appointments) {
+            if (a.getClinic() == selected && a.getAppointmentDateTime().equals(slot)) {
+                System.out.println("❌ This slot is already booked.");
+                return;
+            }
+        }
+
+        // إنشاء الموعد الجديد
+        Appointment newApp = new Appointment(cur_Patient, selected, slot);
+        appointments.add(newApp);
+        System.out.println("✅ Appointment booked successfully!");
     }
-
-    System.out.println();
-}
-
-
 
     
-   
+    private static void viewMyAppointments() {
+        System.out.println("\n-- My Appointments --");
+
+        boolean foundAny = false;
+
+        for (Appointment a : appointments) {
+            if (a.getPatient() == cur_Patient) {
+                foundAny = true;
+                System.out.println("• Clinic: " + a.getClinic().getName() +
+                    " | Day/Time: " + a.getAppointmentDateTime().toString());
+            }
+        }
+
+        if (!foundAny)
+            System.out.println("No appointments found.");
+    }
 
 }
