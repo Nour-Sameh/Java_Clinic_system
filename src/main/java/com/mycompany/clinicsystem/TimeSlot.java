@@ -1,40 +1,61 @@
 package com.mycompany.clinicsystem;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  * @author Javengers
  */
 public class TimeSlot {
-    private LocalDate startTime;
-    private LocalDate endTime;
+    private DayOfWeek day;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private boolean isBooked;
 
     public TimeSlot() {
     }
     
-    public TimeSlot(LocalDate startTime, LocalDate endTime, boolean isBooked) {
+    public TimeSlot(LocalTime startTime, LocalTime endTime, boolean isBooked) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.isBooked = isBooked;
     }
 
-    public LocalDate getStartTime() {
+    public TimeSlot(DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+        this.day = day;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    public DayOfWeek getDay() {
+        return day;
+    }
+
+    public void setDay(DayOfWeek day) {
+        this.day = day;
+    }
+
+    
+        
+   //
+
+    public LocalTime getStartTime() {
         return startTime;
     }
 
-    public LocalDate getEndTime() {
+    public LocalTime getEndTime() {
         return endTime;
     }
 
-    public boolean isIsBooked() {
+    public boolean isBooked() {
         return isBooked;
     }
 
-    public void setStartTime(LocalDate startTime) {
+    public void setStartTime(LocalTime startTime) {
         this.startTime = startTime;
     }
 
-    public void setEndTime(LocalDate endTime) {
+    public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
     

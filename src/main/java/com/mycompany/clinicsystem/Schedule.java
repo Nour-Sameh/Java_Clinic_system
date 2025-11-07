@@ -1,4 +1,5 @@
 package com.mycompany.clinicsystem;
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,15 @@ public class Schedule {
         this.slots = new ArrayList<>();
     }
 
+    public List<TimeSlot> getSlots() {
+        return slots;
+    }
+
+    public void setSlots(List<TimeSlot> slots) {
+        this.slots = slots;
+    }
+    
+    
     public int getID() {
         return ID;
     }
@@ -39,21 +49,35 @@ public class Schedule {
         this.weeklyRules = weeklyRules;
     }
     
-    public void generateTimeSlots() {
-        slots.clear();
+   public void generateTimeSlots() {
+    slots.clear(); // نمسح أي مواعيد قديمة
 
-        if (weeklyRules == null) return;
+    if (weeklyRules==null || weeklyRules.isEmpty()) {
+        System.out.println(" No working hours defined yet.");
+        return;
+    }
 
-        for (WorkingHoursRule rule : weeklyRules) {
-            LocalTime current = rule.getStartTime();
-            while (current.plusMinutes(slotDurationInMinutes).isBefore(rule.getEndtTime()) ||
-                   current.plusMinutes(slotDurationInMinutes).equals(rule.getEndtTime())) {
-                LocalTime end = current.plusMinutes(slotDurationInMinutes);
-                slots.add(new TimeSlot(rule.getDay(), current, end));
-                current = end;
-            }
+    for (WorkingHoursRule rule : weeklyRules) {
+        DayOfWeek day = rule.getDay();
+        LocalTime start = rule.getStartTime();
+        LocalTime end = rule.getEndtTime();
+
+        LocalTime current = start;
+
+        while (current.plusMinutes(slotDurationInMinutes).isBefore(end) ||
+               current.plusMinutes(slotDurationInMinutes).equals(end)) {
+
+            LocalTime slotEnd = current.plusMinutes(slotDurationInMinutes);
+
+            TimeSlot slot = new TimeSlot(day, current, slotEnd);
+
+         
+            slots.add(slot);
+
+            
+            current = slotEnd;
         }
     }
-    
-    
+}
+
 }
