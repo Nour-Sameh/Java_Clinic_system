@@ -1,5 +1,6 @@
 package com.mycompany.clinicsystem;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,33 +60,31 @@ public class Schedule {
     }
     
     // Generates the time slots for the schedule based on the weekly rules and slot duration
-    public void generateTimeSlots() {
+    public void generateTimeSlots(LocalDate startDate, LocalDate endDate) {
         slots.clear();
+        if (weeklyRules == null || weeklyRules.isEmpty()) return;
 
-        if (weeklyRules == null || weeklyRules.isEmpty()) {
-            System.out.println(" No working hours defined yet.");
-            return;
-        }
+        LocalDate currentDate = startDate;
 
-        for (WorkingHoursRule rule : weeklyRules) {
-            DayOfWeek day = rule.getDay();
-            LocalTime start = rule.getStartTime();
-            LocalTime end = rule.getEndtTime();
+        while (!currentDate.isAfter(endDate)) {
+            DayOfWeek day = currentDate.getDayOfWeek();
+            for (WorkingHoursRule rule : weeklyRules) {
+                if (rule.getDay() == day) {
+                    LocalTime start = rule.getStartTime();
+                    LocalTime end = rule.getEndtTime();
+                    LocalTime time = start;
 
-            LocalTime current = start;
-
-            while (current.plusMinutes(slotDurationInMinutes).isBefore(end) ||
-                   current.plusMinutes(slotDurationInMinutes).equals(end)) {
-
-                LocalTime slotEnd = current.plusMinutes(slotDurationInMinutes);
-
-                TimeSlot slot = new TimeSlot(day, current, slotEnd);
-
-                slots.add(slot);
-
-                current = slotEnd;
+                    while (!time.isAfter(end.minusMinutes(slotDurationInMinutes))) {
+                        LocalTime slotEnd = time.plusMinutes(slotDurationInMinutes);
+                        TimeSlot slot = new TimeSlot(currentDate, day, time, slotEnd);
+                        slots.add(slot);
+                        time = slotEnd;
+                    }
+                }
             }
+            currentDate = currentDate.plusDays(1);
         }
     }
+
 
 }

@@ -25,6 +25,7 @@ public class Department {
     public int getID() {
         return ID;
     }
+    public void addClinic(Clinic c) { clinics.add(c); }
 
     // Sets the department ID
     public void setID(int ID) {

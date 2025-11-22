@@ -37,11 +37,21 @@ public class Appointment {
         return appointmentDateTime;
     }
 
-    // Sets a new time slot for the appointment and marks it as booked
-    public void setAppointmentDateTime(TimeSlot appointmentDateTime) {
-        this.appointmentDateTime = appointmentDateTime;
-        appointmentDateTime.markAsBooked();
+    public void cancel() {
+        appointmentDateTime.markAsCancelled();
+        clinic.notifyWaitingList(appointmentDateTime);
+        clinic.getAppointments().remove(this);
+        patient.getAppointmentList().remove(this);
+
     }
+
+    public void reschedule(TimeSlot newSlot) {
+        appointmentDateTime.markAsAvailable();
+        this.appointmentDateTime = newSlot;
+        newSlot.markAsBooked();
+    }
+    
+    
     
     // Returns a string representation of the appointment details
     @Override

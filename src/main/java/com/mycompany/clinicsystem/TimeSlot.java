@@ -2,6 +2,7 @@ package com.mycompany.clinicsystem;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.*;
 
 /**
  * Represents a time slot for appointments, including day, start and end times,
@@ -9,78 +10,59 @@ import java.time.LocalTime;
  * @author Javengers
  */
 public class TimeSlot {
+    private LocalDate date;
     private DayOfWeek day;
     private LocalTime startTime;
     private LocalTime endTime;
     private boolean isBooked;
+    private boolean isCancelled;
 
-    // Default constructor: creates an empty time slot
-    public TimeSlot() {
-    }
-    
-    // Constructor: creates a time slot with start and end times and booking status
-    public TimeSlot(LocalTime startTime, LocalTime endTime, boolean isBooked) {
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.isBooked = isBooked;
-    }
-
-    // Constructor: creates a time slot with day, start and end times (initially available)
-    public TimeSlot(DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+    public TimeSlot(LocalDate date, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+        this.date = date;
         this.day = day;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.isBooked = false;
+        this.isCancelled = false;
     }
 
-    // Returns the day of the week for this time slot
-    public DayOfWeek getDay() {
-        return day;
+    public LocalDate getDate() { return date; }
+    public DayOfWeek getDay() { return day; }
+    public LocalTime getStartTime() { return startTime; }
+    public LocalTime getEndTime() { return endTime; }
+    public boolean isBooked() { return isBooked; }
+    public boolean isCancelled() { return isCancelled; }
+
+    public void markAsBooked() { isBooked = true; isCancelled = false; }
+    public void markAsAvailable() { isBooked = false; isCancelled = false; }
+    public void markAsCancelled() { isBooked = false; isCancelled = true; }
+
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof TimeSlot)) return false;
+        TimeSlot t = (TimeSlot) o;
+        return date.equals(t.date) &&
+               startTime.equals(t.startTime) &&
+               endTime.equals(t.endTime);
     }
 
-    // Sets the day of the week for this time slot
-    public void setDay(DayOfWeek day) {
-        this.day = day;
+    @Override
+    public int hashCode() {
+        return Objects.hash(date, startTime, endTime);
     }
 
-    // Returns the start time of the time slot
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    // Returns the end time of the time slot
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    // Returns whether the time slot is booked
-    public boolean isBooked() {
-        return isBooked;
-    }
-
-    // Sets the start time of the time slot
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    // Sets the end time of the time slot
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-    
-    // Marks the time slot as booked
-    public void markAsBooked() {
-        isBooked = true;
-    }
-    
-    // Marks the time slot as available
-    public void markAsAvailable() {
-        isBooked = false;
-    }
-
-    // Returns a string representation of the time slot details
     @Override
     public String toString() {
-        return "TimeSlot{" + "day=" + day + ", startTime=" + startTime + ", endTime=" + endTime + ", isBooked=" + isBooked + '}';
+        return "TimeSlot{" +
+                "date=" + date +
+                ", day=" + day +
+                ", start=" + startTime +
+                ", end=" + endTime +
+                ", booked=" + isBooked +
+                ", cancelled=" + isCancelled +
+                '}';
     }
-    
 }

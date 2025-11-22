@@ -3,6 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.clinicsystem;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -18,29 +20,24 @@ import java.util.*;
 
  
 public class Clinic {
-    //Unique identifier for the clinic.
+
     private int ID;
-    //The department ID this clinic belongs to.
     private int departmentID;
-    //The clinic's display name. 
     private String name;
-    //The physical address of the clinic.
     private String address;
-    //The base consultation price for the clinic
     private double price;
-    //The working schedule containing available time slots.
     private Schedule schedule;
-    //The average rating of the clinic based on patient feedback. 
     private double avgRating;
-    //The list of appointments booked in this clinic. 
     private List<Appointment> appointments ;
-    //The list of ratings submitted by patients for this clinic.
     private List<Rating>ratings ;
+    private Queue<WaitingList> waitingList = new LinkedList<>();
     
-    //Returns all ratings associated with this clinic.
-    public List<Rating> getRatings() {
+    
+    List<Rating> getRatings() {
         return ratings;
     }
+    
+    
     //Adds a new rating to the clinic’s list of ratings.
     public void addToRatings(Rating x) {
         this.ratings.add(x);
@@ -101,16 +98,17 @@ public class Clinic {
         return schedule;
     }
     //Sets a new schedule for this clinic and regenerates time slots
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
-        schedule.generateTimeSlots();
-    }
+    public void setSchedule(Schedule schedule, LocalDate startDate, LocalDate endDate) {
+    this.schedule = schedule;
+    schedule.generateTimeSlots(startDate, endDate);
+}
 
     //Calculates and returns the average rating of the clinic.
      /* 
       This method iterates through all ratings, sums the scores,
       and divides by the total number of ratings to compute the mean value.*/
     public double getAvgRating() {
+        if (ratings.isEmpty()) return 0;
         double r = 0;
         for(Rating x : ratings) {
             r += x.getScore();
@@ -123,10 +121,6 @@ public class Clinic {
         this.avgRating = avgRating;
     }
     
-    //Adds a new schedule to the clinic
-    public void addSchedule(Schedule schedule) {
-        this.schedule = schedule;
-    }
     //Returns the list of appointments associated with this clinic.
     public List<Appointment> getAppointments() {
         return appointments;
@@ -153,6 +147,61 @@ public class Clinic {
         return r;
     }
     
+    public void cancelAppointmentsInDay(DayOfWeek day) {
+        List<Appointment> toCancel = new ArrayList<>();
+        for(Appointment a : appointments) {
+            if(a.getAppointmentDateTime().getDay() == day) {
+                toCancel.add(a);
+            }
+        }
+        for(Appointment a : toCancel) {
+            a.cancel();
+            appointments.remove(a);
+            System.out.println("Appointment for " + a.getPatient().getName() + " cancelled on " + day);
+        }
+    }
+    
+    public void addToWaitingList(Patient patient) {
+        waitingList.add(new WaitingList(patient));
+    }
+    
+    public void notifyWaitingList(TimeSlot freedSlot) {
+        if(waitingList.isEmpty()) return;
+
+        WaitingList next = waitingList.poll();
+        Patient p = next.getPatient();
+
+        // الفكرة هنا: تبعتي Notification (GUI message أو Email)
+        System.out.println("Notification to " + p.getEmail() +
+                           ": A slot became available at " + freedSlot +
+                           ". Would you like to book it?");
+
+    }
+    
+    public void shiftAppointments(DayOfWeek day, int minutes) {
+        for(Appointment a : new ArrayList<>(appointments)) {
+            if(a.getAppointmentDateTime().getDay() == day) {
+                a.getAppointmentDateTime().setStartTime(a.getAppointmentDateTime().getStartTime().plusMinutes(minutes));
+                a.getAppointmentDateTime().setEndTime(a.getAppointmentDateTime().getEndTime().plusMinutes(minutes));
+
+                // تحقق من المواعيد خارج وقت العمل الجديد
+                boolean valid = false;
+                for(WorkingHoursRule rule : schedule.getWeeklyRules()) {
+                    if(rule.getDay() == day &&
+                       !a.getAppointmentDateTime().getStartTime().isBefore(rule.getStartTime()) &&
+                       !a.getAppointmentDateTime().getEndTime().isAfter(rule.getEndtTime())) {
+                        valid = true;
+                        break;
+                    }
+                }
+                if(!valid) {
+                    a.cancel();
+                    appointments.remove(a);
+                    System.out.println("Appointment for " + a.getPatient().getName() + " cancelled due to schedule change");
+                }
+            }
+        }
+    }
     
 }
 

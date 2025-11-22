@@ -12,7 +12,7 @@ public class Rating {
     private String comment;  
 
     // Constructor: creates a new rating with patient, clinic, score, and comment
-    Rating(Patient patient, Clinic clinic, int score, String comment){
+    public Rating(Patient patient, Clinic clinic, int score, String comment){
         this.patient = patient;
         this.clinic = clinic;
         this.score = score;
